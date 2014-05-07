@@ -16,10 +16,14 @@
 
 package name.heikoseeberger.akkamazing
 
-import akka.actor.ActorSystem
+import akka.actor.{ PoisonPill, ActorSystem }
+import akka.contrib.pattern.ClusterSingletonManager
 
 object UserServiceApp extends BaseApp {
 
   override def run(system: ActorSystem, opts: Map[String, String]): Unit =
-    system.actorOf(UserService.props, "user-service")
+    system.actorOf(
+      ClusterSingletonManager.props(UserService.props, "user-service", PoisonPill, Some("user-service")),
+      "singleton"
+    )
 }
