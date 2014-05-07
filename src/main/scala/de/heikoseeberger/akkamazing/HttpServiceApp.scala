@@ -16,27 +16,13 @@
 
 package de.heikoseeberger.akkamazing
 
-import akka.actor.{ Actor, ExtendedActorSystem, Extension, ExtensionKey }
+import akka.actor.ActorSystem
 
-object Settings extends ExtensionKey[Settings]
+object HttpServiceApp extends BaseApp {
 
-class Settings(system: ExtendedActorSystem) extends Extension {
-
-  object httpService {
-
-    val hostname: String =
-      akkamazing getString "http-service.hostname"
-
-    val port: Int =
-      akkamazing getInt "http-service.port"
+  override def run(system: ActorSystem, opts: Map[String, String]): Unit = {
+    val settings = Settings(system)
+    import settings.httpService._
+    system.actorOf(HttpService.props(hostname, port), "http-service")
   }
-
-  private val akkamazing = system.settings.config getConfig "akkamazing"
-}
-
-trait SettingsActor {
-  this: Actor =>
-
-  val settings: Settings =
-    Settings(context.system)
 }
