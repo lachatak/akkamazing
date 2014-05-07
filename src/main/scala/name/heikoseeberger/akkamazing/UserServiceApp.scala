@@ -21,9 +21,11 @@ import akka.contrib.pattern.ClusterSingletonManager
 
 object UserServiceApp extends BaseApp {
 
-  override def run(system: ActorSystem, opts: Map[String, String]): Unit =
+  override def run(system: ActorSystem, opts: Map[String, String]): Unit = {
+    system.actorOf(SharedJournalSetter.props, "shared-journal-setter")
     system.actorOf(
       ClusterSingletonManager.props(UserService.props, "user-service", PoisonPill, Some("user-service")),
       "singleton"
     )
+  }
 }
