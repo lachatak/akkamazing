@@ -18,6 +18,7 @@ package de.heikoseeberger.akkamazing
 
 import akka.actor.{ Actor, ActorLogging, Props }
 import spray.json.DefaultJsonProtocol
+import akka.persistence.EventsourcedProcessor
 
 object UserService {
 
@@ -43,21 +44,30 @@ object UserService {
     Props(new UserService)
 }
 
-class UserService extends Actor with ActorLogging {
+class UserService extends EventsourcedProcessor with ActorLogging {
 
   import UserService._
 
   var names = Set.empty[String]
 
-  override def receive: Receive = {
+  override def receiveCommand: Receive = {
     case GetUsers                            => sender() ! Users(names)
     case SignUp(name) if names contains name => sender() ! NameTaken(name)
-    case SignUp(name)                        => signUp(name)
+    case SignUp(name)                        => persist(SignedUp(name))(handleSignedUpThenRespond)
   }
 
-  def signUp(name: String): Unit = {
+  override def receiveRecover: Receive = {
+    case signedUp: SignedUp => handleSignedUp(signedUp)
+  }
+
+  def handleSignedUpThenRespond(signedUp: SignedUp): Unit = {
+    handleSignedUp(signedUp)
+    sender() ! signedUp
+  }
+
+  def handleSignedUp(signedUp: SignedUp): Unit = {
+    val SignedUp(name) = signedUp
     log.info("Signing up {}", name)
     names += name
-    sender() ! SignedUp(name)
   }
 }

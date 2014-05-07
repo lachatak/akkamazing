@@ -13,3 +13,5 @@ addCommandAlias("hs", "runMain de.heikoseeberger.akkamazing.HttpServiceApp -Dakk
 addCommandAlias("us1", "runMain de.heikoseeberger.akkamazing.UserServiceApp -Dakka.remote.netty.tcp.port=2552 -Dakka.cluster.roles.0=user-service")
 
 addCommandAlias("us2", "runMain de.heikoseeberger.akkamazing.UserServiceApp -Dakka.remote.netty.tcp.port=2553 -Dakka.cluster.roles.0=user-service")
+
+addCommandAlias("sj", "runMain de.heikoseeberger.akkamazing.SharedJournalApp -Dakka.remote.netty.tcp.port=2554 -Dakka.cluster.roles.0=shared-journal")
