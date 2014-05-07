@@ -18,8 +18,11 @@ package de.heikoseeberger.akkamazing
 
 import akka.actor.Props
 import akka.io.IO
+import akka.pattern.ask
+import akka.routing.FromConfig
 import spray.can.Http
 import spray.http.StatusCodes
+import spray.httpx.SprayJsonSupport
 import spray.routing.{ HttpServiceActor, Route }
 
 object HttpService {
@@ -28,7 +31,12 @@ object HttpService {
     Props(new HttpService(hostname, port))
 }
 
-class HttpService(hostname: String, port: Int) extends HttpServiceActor {
+class HttpService(hostname: String, port: Int) extends HttpServiceActor with SprayJsonSupport with SettingsActor {
+
+  import context.dispatcher
+  import settings.httpService.askTimeout
+
+  val userServicve = context.actorOf(FromConfig.props(), "user-service")
 
   override def preStart(): Unit =
     IO(Http)(context.system) ! Http.Bind(self, hostname, port)
@@ -37,13 +45,24 @@ class HttpService(hostname: String, port: Int) extends HttpServiceActor {
     runRoute(apiRoute)
 
   def apiRoute: Route =
+    // format: OFF
     pathPrefix("api") {
       path("users") {
         get {
           complete {
-            StatusCodes.OK
+            (userServicve ? UserService.GetUsers).mapTo[UserService.Users]
+          }
+        } ~
+        post {
+          entity(as[UserService.SignUp]) { signUp =>
+            complete {
+              userServicve ? signUp map {
+                case UserService.NameTaken(name) => StatusCodes.Conflict
+                case UserService.SignedUp(name)  => StatusCodes.Created
+              }
+            }
           }
         }
       }
-    }
+    } // format: ON
 }
