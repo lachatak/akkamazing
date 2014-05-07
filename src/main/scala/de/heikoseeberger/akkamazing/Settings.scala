@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package de.heikoseeberger
+package de.heikoseeberger.akkamazing
 
-package object akkamazing {
+import akka.actor.{ Actor, ExtendedActorSystem, Extension, ExtensionKey }
 
-  type Traversable[+A] = scala.collection.immutable.Traversable[A]
+object Settings extends ExtensionKey[Settings]
 
-  type Iterable[+A] = scala.collection.immutable.Iterable[A]
+class Settings(system: ExtendedActorSystem) extends Extension {
 
-  type Seq[+A] = scala.collection.immutable.Seq[A]
+  private val akkamazing = system.settings.config getConfig "akkamazing"
+}
 
-  type IndexedSeq[+A] = scala.collection.immutable.IndexedSeq[A]
+trait SettingsActor {
+  this: Actor =>
+
+  val settings: Settings =
+    Settings(context.system)
 }
