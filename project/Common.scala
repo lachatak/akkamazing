@@ -23,6 +23,7 @@ object Common {
       unmanagedSourceDirectories in Compile := List((scalaSource in Compile).value),
       unmanagedSourceDirectories in Test := List((scalaSource in Test).value),
       resolvers += "spray repo" at "http://repo.spray.io",
+      resolvers += Opts.resolver.sonatypeSnapshots,
       // Scalariform settings
       ScalariformKeys.preferences := ScalariformKeys.preferences.value
         .setPreference(AlignSingleLineCaseStatements, true)
